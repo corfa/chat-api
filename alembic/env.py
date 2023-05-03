@@ -1,3 +1,5 @@
+from db.config_db import PostgresConfig
+
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
@@ -11,6 +13,13 @@ from db.models.base import BaseModel
 # access to the values within the .ini file in use.
 config = context.config
 
+section = config.config_ini_section
+config.set_section_option(section, "DB_HOST", PostgresConfig.host)
+config.set_section_option(section, "DB_PASSWORD", PostgresConfig.password)
+config.set_section_option(section, "DB_USER", PostgresConfig.user)
+config.set_section_option(section, "DB_NAME", PostgresConfig.db)
+config.set_section_option(section, "DB_PORT", PostgresConfig.port)
+
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
 if config.config_file_name is not None:
@@ -21,6 +30,7 @@ if config.config_file_name is not None:
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 target_metadata = BaseModel.metadata
+
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:

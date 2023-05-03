@@ -1,7 +1,10 @@
+from typing import List, Type
+
 from sqlalchemy.orm import Session
 
 from db.models import DBUsers
-from shemas.users import User
+from shemas.update_user import UpdateUser
+from shemas.user import User
 
 
 def create_user(db: Session, user: User) -> int:
@@ -10,3 +13,25 @@ def create_user(db: Session, user: User) -> int:
     db.commit()
     db.refresh(user_db)
     return user_db.id
+
+
+def update_username(db: Session, id_: int, update_user: UpdateUser) -> int:
+    user = db.query(DBUsers).filter(DBUsers.id == id_).first()
+    user.username = update_user.username
+    db.commit()
+    return  user.id
+
+
+def get_all_users(db: Session) -> list[Type[DBUsers]]:
+    return db.query(DBUsers).all()
+
+
+def get_user(db: Session, id_: int) -> DBUsers:
+    return db.query(DBUsers).filter(DBUsers.id == id_).first()
+
+
+def soft_del_user(db: Session, id_: int) -> int:
+    db_user = db.query(DBUsers).filter(DBUsers.id == id_).first()
+    db_user.is_delete = True
+    db.commit()
+    return db_user.id

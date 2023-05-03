@@ -1,12 +1,13 @@
-from sqlalchemy import Column, String, Integer
+from sqlalchemy import Column, String, Integer,BOOLEAN
 from sqlalchemy.orm import relationship
 
 from db.models import BaseModel
 
 
-class Chat(BaseModel):
+class DBChat(BaseModel):
     __tablename__ = "chats"
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String)
-    messages = relationship("Message", back_populates="chat")
+    is_delete = Column(BOOLEAN)
+    messages = relationship("DBMessage", back_populates="chat")
     users = relationship("DBUsers", secondary="chat_users")

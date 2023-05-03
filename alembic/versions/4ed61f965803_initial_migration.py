@@ -1,8 +1,8 @@
-"""create db
+"""initial migration
 
-Revision ID: 748d48216c9b
+Revision ID: 4ed61f965803
 Revises: 
-Create Date: 2023-04-30 00:47:23.181166
+Create Date: 2023-05-03 12:49:14.259439
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '748d48216c9b'
+revision = '4ed61f965803'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -21,6 +21,7 @@ def upgrade() -> None:
     op.create_table('chats',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(), nullable=True),
+    sa.Column('is_delete', sa.BOOLEAN(), nullable=True),
     sa.Column('created_at', sa.TIMESTAMP(), nullable=False),
     sa.Column('update_at', sa.TIMESTAMP(), nullable=False),
     sa.PrimaryKeyConstraint('id')
@@ -30,6 +31,7 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('username', sa.String(), nullable=True),
     sa.Column('password', sa.String(), nullable=True),
+    sa.Column('is_delete', sa.BOOLEAN(), nullable=True),
     sa.Column('created_at', sa.TIMESTAMP(), nullable=False),
     sa.Column('update_at', sa.TIMESTAMP(), nullable=False),
     sa.PrimaryKeyConstraint('id')
@@ -50,9 +52,9 @@ def upgrade() -> None:
     op.create_table('messages',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('text', sa.String(), nullable=True),
-    sa.Column('timestamp', sa.DateTime(), nullable=True),
     sa.Column('user_id', sa.Integer(), nullable=True),
     sa.Column('chat_id', sa.Integer(), nullable=True),
+    sa.Column('is_delete', sa.BOOLEAN(), nullable=True),
     sa.Column('created_at', sa.TIMESTAMP(), nullable=False),
     sa.Column('update_at', sa.TIMESTAMP(), nullable=False),
     sa.ForeignKeyConstraint(['chat_id'], ['chats.id'], ),
