@@ -2,15 +2,16 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from db.requests.chat_requests import create_chat, soft_del_chat, get_all_chats, get_chat_messages
-from routers.depends import get_db
+from routers.depends import get_db, verification
 from shemas.chat import Chat
 
 router = APIRouter()
 
 
 @router.post("/chat/", tags=["chat"])
-async def create_chat_endpoint(chat: Chat, db: Session = Depends(get_db)):
-    id_chat = create_chat(db, chat)
+async def create_chat_endpoint(chat: Chat,token: dict = Depends(verification), db: Session = Depends(get_db)):
+    user_id = token["id"]
+    id_chat = create_chat(db,user_id, chat)
     return {"id": id_chat}
 
 

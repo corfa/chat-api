@@ -1,0 +1,2 @@
+class DBUserNotFoundException(Exception):
+    pass

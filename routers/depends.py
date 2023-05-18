@@ -1,3 +1,8 @@
+from fastapi import HTTPException
+from fastapi.params import Header
+from starlette import status
+
+import helper
 from db.session_db import SessionLocal
 
 
@@ -7,3 +12,14 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+async def verification(token: str = Header(..., convert_underscores=True, alias="X-Token")):
+    try:
+        data = helper.read_token(token)
+        return data
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication credentials"
+        )
