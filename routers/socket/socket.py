@@ -1,30 +1,42 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from starlette.websockets import WebSocket
+from starlette.websockets import WebSocketDisconnect
 
-from db.requests.chat_requests import get_all_user_chats, get_chat_ids_for_user
-from routers.depends import verification, get_db
-from routers.socket.active_connections import active_connections
+from fastapi import WebSocket
+from db.requests.message_requests import create_message, get_all_messages_for_chat
+from db.requests.user_requests import get_user_on_id
+from routers.socket.connect_manager import ConnectManager
+from routers.depends import get_db, verification
+from shemas.reqmessage import SaveMessage
 
 router = APIRouter()
 
+manager = ConnectManager()
 
-async def websocket_handler(websocket: WebSocket, db: Session, token: dict, active_connections: dict):
+
+@router.websocket("/chat/{chat_id}")
+async def chat_endpoint(websocket: WebSocket, chat_id: int, db: Session = Depends(get_db),
+                        token: dict = Depends(verification)):
     user_id = token["id"]
+    user = get_user_on_id(db, user_id)
+    user_name = user.username
+
     await websocket.accept()
-    chat_ids = get_chat_ids_for_user(db=db, user_id=user_id)
-    for chat_id in chat_ids:
-        if chat_id not in active_connections:
-            active_connections[chat_id] = []
-        active_connections[chat_id].append(websocket)
+
+    await manager.add_connection(websocket, chat_id)
+
+    messages_in_chat = get_all_messages_for_chat(db, chat_id)
+
+    for message in messages_in_chat:
+        db_user = get_user_on_id(db, message.user_id)
+        data = f"сообщение от пользоватля {db_user.username} : {message.text}"
+        await websocket.send_text(data)
+
     try:
         while True:
-            message = await websocket.receive_text()
-
-    finally:
-        del active_connections[user_id]
-
-
-@router.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket, db: Session = Depends(get_db), token: dict = Depends(verification)):
-    await websocket_handler(websocket, db, token, active_connections)
+            data = await websocket.receive_text()
+            message = SaveMessage(user_id=user_id, chat_id=chat_id, text=data)
+            create_message(db, message)
+            await manager.send_message_in_chat(chat_id, message.text, user_name)
+    except WebSocketDisconnect:
+        await manager.remove_connection(websocket, chat_id)

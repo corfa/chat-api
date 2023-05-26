@@ -25,6 +25,8 @@ async def create_user_endpoint(user: User, db: Session = Depends(get_db)):
 async def auth_user_endpoint(user: User, db: Session = Depends(get_db)):
     try:
         user_db = get_user_on_login(db, user.username)
+        if user_db is None:
+            raise Exception
         token = helper.create_token({"id": user_db.id})
         return {"X-token": token}
     except:
