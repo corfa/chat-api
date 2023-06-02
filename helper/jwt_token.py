@@ -19,7 +19,7 @@ def create_token(data: dict, *, lifetime: int = 1) -> str:
 def read_token(token: str) -> dict:
     try:
         return jwt.decode(token, secret, algorithms='HS256')
-    except jwt.exceptions.PyJWTError:
+    except:
         raise Exception
 
 

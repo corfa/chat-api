@@ -1,6 +1,7 @@
 from fastapi import HTTPException
 from fastapi.params import Header
 from starlette import status
+from starlette.websockets import WebSocketDisconnect
 
 import helper
 from db.session_db import SessionLocal
@@ -23,3 +24,5 @@ async def verification(token: str = Header(..., convert_underscores=True, alias=
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid authentication credentials"
         )
+
+

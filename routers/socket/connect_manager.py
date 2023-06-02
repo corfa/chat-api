@@ -1,3 +1,5 @@
+import json
+
 from websocket import WebSocket
 
 
@@ -16,7 +18,17 @@ class ConnectManager:
         if len(self.active_connections_chats[chat_id]) == 0:
             self.active_connections_chats.pop(chat_id)
 
-    async def send_message_in_chat(self, chat_id, data, sendler):
+    async def send_message_in_chat(self, chat_id, data):
+        json_data = json.dumps(data)
         for connection in self.active_connections_chats[chat_id]:
-            message = f"сообщение от пользоватля {sendler} : {data}"
-            await connection.send_text(message)
+            await connection.send_text(json_data)
+
+
+
+
+
+
+
+
+
+

@@ -44,6 +44,11 @@ def get_all_user_chats(db: Session, user_id: int):
     return all_user_chats
 
 
+def get_all_chats(db: Session):
+    all_chats = db.query(DBChat).all()
+    return all_chats
+
+
 def get_chat_ids_for_user(db: Session, user_id: int):
     chat_user_ids = db.query(ChatUser.chat_id).filter(ChatUser.user_id == user_id).all()
     chat_ids = [chat_id for chat_id, in chat_user_ids]
