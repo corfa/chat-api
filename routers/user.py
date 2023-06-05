@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from starlette import status
 
 import helper
+from db.exceptions.user_exception import UsernameAlreadyExists, DBUserNotFoundException
 from db.requests.chat_requests import get_all_user_chats, get_all_chats
 from db.requests.user_requests import create_user, get_all_users, get_user_on_id, soft_del_user, update_username, \
     get_user_on_login
@@ -18,9 +19,15 @@ router = APIRouter()
 
 @router.post("/user/", tags=["users"])
 async def create_user_endpoint(user: User, db: Session = Depends(get_db)):
-    user.password = helper.hash_password(user.password)
-    id_user = create_user(db, user)
-    return {"id": id_user}
+    try:
+        user.password = helper.hash_password(user.password)
+        id_user = create_user(db, user)
+        return {"id": id_user}
+    except UsernameAlreadyExists:
+        return HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Username {user.username} already exists"
+        )
 
 
 #
@@ -37,7 +44,7 @@ async def auth_user_endpoint(user: User, db: Session = Depends(get_db)):
     except:
         return HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid login credentials"
+            detail="Invalid login or password"
         )
 
 
@@ -49,25 +56,51 @@ async def get_users_endpoint(db: Session = Depends(get_db)):
 
 @router.get("/user/{id}", tags=["users"])
 async def get_user_endpoint(id: int, db: Session = Depends(get_db)):
-    user = get_user_on_id(db, id)
-    return {"user": user}
+    try:
+        user = get_user_on_id(db, id)
+        return {"user": user}
+    except:
+        return HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
 
 
 @router.put("/user/{id}", tags=["users"])
 async def update_user_endpoint(id: int, update_user: UpdateUser, db: Session = Depends(get_db)):
-    id_user = update_username(db, id, update_user)
-    return {"user_id": id_user}
+    try:
+        id_user = update_username(db, id, update_user)
+        return {"user_id": id_user}
+    except DBUserNotFoundException:
+        return HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    except UsernameAlreadyExists:
+        return HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Username already exists"
+        )
 
 
 @router.delete("/user/{id}", tags=["users"])
 async def del_user_endpoint(id: int, db: Session = Depends(get_db)):
-    id_user = soft_del_user(db, id)
-    return {"id": id_user}
+    try:
+        id_user = soft_del_user(db, id)
+        return {"id": id_user}
+    except:
+        return HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
 
 
 @router.get("/user/chat-list/", tags=["users"])
 async def get_all_user_chat_endpoint(token: dict = Depends(verification), db: Session = Depends(get_db)):
-    user_id = token["id"]
-    #chats = get_all_user_chats(db, user_id)
-    chats=get_all_chats(db)
+    #####################################
+    # if need chats only current user
+    # user_id = token["id"]
+    # chats = get_all_user_chats(db, user_id)
+    ##########################################
+    chats = get_all_chats(db)
     return {"chats": chats}

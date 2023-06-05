@@ -24,5 +24,3 @@ async def verification(token: str = Header(..., convert_underscores=True, alias=
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid authentication credentials"
         )
-
-

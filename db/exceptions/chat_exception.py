@@ -1,0 +1,2 @@
+class DBChatNotFoundException(Exception):
+    pass

@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 
+from db.exceptions.chat_exception import DBChatNotFoundException
 from db.models import DBChat, DBMessage, ChatUser
 from shemas.chat import Chat
 
@@ -27,6 +28,8 @@ def get_all_chats(db: Session) -> list[type[DBChat]]:
 
 def soft_del_chat(db: Session, id_: int) -> int:
     db_chat = db.query(DBChat).filter(DBChat.id == id_).first()
+    if db_chat is None:
+        raise DBChatNotFoundException()
     db_chat.is_delete = True
     db.commit()
     return db_chat.id
